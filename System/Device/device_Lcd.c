@@ -115,6 +115,7 @@ static TestStatus WriteCmdInit(void)	//(byte Command)
 		return FAILED; 
 	}
 
+	LCD_StopI2C(); 
 	LcdDelay(200);
 	return PASSED; 
 }
@@ -142,6 +143,8 @@ static TestStatus ScreenClear(void)
 {
 	byte i;
 	
+	if (!LCD_StartI2C()) 
+		return FAILED; 
 	LCD_SendByteI2C(0xC0); 
 	if (!LCD_WaitAckI2C()) 
 	{
@@ -151,7 +154,8 @@ static TestStatus ScreenClear(void)
 	for(i=0;i<20;i++)
 	{
 		LCD_SendByteI2C(0x00); 
-		LCD_WaitAckI2C(); 
+		LCD_WaitAckI2C();
+    ComData[i]=0;		
 	}
 	LCD_StopI2C(); 
 	return PASSED; 

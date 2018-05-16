@@ -33,6 +33,38 @@
 
 
 
+typedef struct 
+{
+  signed char TempInside;                 
+  byte RHInside;
+  signed char TempOutside;
+  ushort CO2Inside;
+  ushort PMInside;
+}SensorDataTypedef;
+
+
+typedef	struct 
+{
+	PowerSetTypedef Power;
+	CircleModeSetTypedef CircleModeSet;
+	TempModeTypedef ThermalModeSet;
+	AuxiliaryHeatTypedef AuxiliaryHeatSet;
+	VentilateRateTypedef VentilateRate;
+	byte  AirFlowSet; 
+	byte  AirFlowRun; 
+	byte ShutTimer;
+	MutSetTypedef MuteSet;
+	ChildLockTypedef ChildLock;
+}SysCtrlParaTypedef; 
+
+typedef struct
+{
+	uint WifiState;
+	uint RFState;
+	uint FaultFlag;
+	uint FilterWarning;
+}SysStateTypedef;
+
 
 /*******************************************************************************
 * 描述	    : msOS中最重要的一个结构体，封装了App层的所有数据及窗口控件
@@ -111,13 +143,16 @@ typedef struct
 
 		struct SysVersion
 		{
-			byte CtrlMainVersion;
-			byte CtrlSubVersion;
-			byte PowerMainVersion;
-			byte PowerSubVersion;
+			ushort CtrlVersion;
+			ushort PowerVersion;
 		}SysVersion;
 		
-    FormDispTypeDef Menu;
+    struct Menu
+    {
+        FormTypeDef MainForm;
+        FormTypeDef FaultForm;
+        FormTypeDef *FocusFormPointer;
+   }Menu;
 		
 		SysStateTypedef SysState;
 		

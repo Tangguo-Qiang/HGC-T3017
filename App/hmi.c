@@ -5,11 +5,11 @@
 * 描述	    : 按键消息处理函数
 * 输入参数  : key，任意按键值
 *******************************************************************************/
-void KeyProcess(KeyActEnum key)
+void KeyProcessMainForm(KeyActEnum key)
 {
 	if(App.SysCtrlPara.Power == POWER_SLEEP)
 	{
-		CommTalk_Trans(COMM_BEEPONE);
+		System.Device.Beep.BeepOn(BEEP_SHORT);
 		if(App.SysCtrlPara.MuteSet == MUTEMODE_ACT)
 		{
 			App.SysCtrlPara.MuteSet = MUTEMODE_OFF;
@@ -19,9 +19,10 @@ void KeyProcess(KeyActEnum key)
 		{
 		LCD_BL_ON;
 			System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+			System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
 			App.SysCtrlPara.Power = POWER_ON;
-			System.Device.Key.KeyLedSet(5);
 		}
+		System.Device.Key.KeyLedSet(5);
 		return;
 	}
 
@@ -35,62 +36,36 @@ void KeyProcess(KeyActEnum key)
 		return;
 	}
 	
-	
-
-		switch(key)
-    {
-			case KeyPower:
-        CommTalk_Trans(COMM_BEEPLONG);			
-			break;
-			case KeyMode:
-        CommTalk_Trans(COMM_BEEPONE);
-			System.Device.Key.KeyLedSet(5);
-				break;
-			case KeyHeater:
-        CommTalk_Trans(COMM_BEEPONE);
-			System.Device.Key.KeyLedSet(5);
-				break;
-			case KeyPlus:
-			case KeyMinus:
-//        CommTalk_Trans(COMM_BEEPONE);
-			System.Device.Key.KeyLedSet(5);
-				break;
-#ifdef __WIFI_VALIDE
-			case KeyLongPlus:
-        CommTalk_Trans(COMM_BEEPTWO);
-			System.Device.Key.KeyLedSet(5);
-				break;
-			case KeyLongPlusMinus:
-        CommTalk_Trans(COMM_BEEPTWO);
-			System.Device.Key.KeyLedSet(5);
-				break;
-#endif
-			default:
-				break;
-		}
-		
+			
 		switch(key)
     {
         case KeyPower:                
 					if(App.SysCtrlPara.Power == POWER_OFF)
 					{
 						App.SysCtrlPara.Power = POWER_ON;
+							System.Device.Beep.BeepOn(BEEP_POWERON);
+
 						System.Device.Key.KeyLedSet(5);
 					}
 					else
 					{
 						App.SysCtrlPara.Power = POWER_OFF;
+							System.Device.Beep.BeepOn(BEEP_POWEROFF);
 						System.Device.Key.KeyLedSet(1);
 					}
 					PostMessage(MessageParaUpdate, PARA_POWER_SET);
             break;
         case KeyMode:
+					System.Device.Key.KeyLedSet(5);
+					System.Device.Beep.BeepOn(BEEP_LONG);
 					App.SysCtrlPara.CircleModeSet++;
 				if(App.SysCtrlPara.CircleModeSet>CIRCLEMODE_IN)
 					App.SysCtrlPara.CircleModeSet = CIRCLEMODE_AUTO;
 				PostMessage(MessageParaUpdate, PARA_CIRCLEMODE);
             break;
         case KeyHeater :
+					System.Device.Key.KeyLedSet(5);
+					System.Device.Beep.BeepOn(BEEP_LONG);
 #ifdef __EXCHANGE_FLOWS
 		  App.SysCtrlPara.VentilateRate++;
 		  if(App.SysCtrlPara.VentilateRate>RATE10TO12)
@@ -115,6 +90,7 @@ void KeyProcess(KeyActEnum key)
             
             
         case KeyPlus:
+					System.Device.Key.KeyLedSet(5);
             App.SysCtrlPara.AirFlowSet++;
 						if(App.SysCtrlPara.AirFlowSet>CTRLFLOW_STEPS)
 							App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEPS;
@@ -123,6 +99,7 @@ void KeyProcess(KeyActEnum key)
 						SeqOperDelay =SEQUENCEOPER_DELAY_100MS;
             break;
         case KeyMinus:
+					System.Device.Key.KeyLedSet(5);
              App.SysCtrlPara.AirFlowSet--;
 						if(App.SysCtrlPara.AirFlowSet<CTRLFLOW_STEP)
 							App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEP;
@@ -135,11 +112,53 @@ void KeyProcess(KeyActEnum key)
 				case KeyLongPlusMinus:
 #ifdef __WIFI_VALIDE
 						PostMessage(MessageWifiCtrl, HekrConfig);
+				System.Device.Beep.BeepOn(BEEP_3SHORT);
+				System.Device.Key.KeyLedSet(5);
 #endif
+					break;
+				case KeyLongPower:	
+					System.Device.Key.KeyLedSet(5);
+					if(App.SysCtrlPara.Power == POWER_ON)
+					{
+							System.Device.Beep.BeepOn(BEEP_3SHORT);
+							App.Menu.FaultForm.LoadFresh =1;
+							App.Menu.FocusFormPointer= &App.Menu.FaultForm;
+					}
 					break;
 				default:
 					break;
          
     }
+}
+
+void KeyProcessFaultForm(KeyActEnum key)
+{
+		switch(key)
+		{
+			case KeyMode:
+			case KeyHeater:
+			case KeyPlus:
+			case KeyMinus:
+			case KeyPower:
+			case KeyLongMode:
+			case KeyLongPlus:
+			case KeyLongMinus:
+							System.Device.Beep.BeepOn(BEEP_LONG);
+							App.Menu.MainForm.LoadFresh =1;
+							App.Menu.FocusFormPointer= &App.Menu.MainForm;
+				
+				break;
+			case KeyLongPower:
+					App.SysCtrlPara.Power = POWER_OFF;
+					System.Device.Beep.BeepOn(BEEP_POWEROFF);
+					System.Device.Key.KeyLedSet(1);
+					App.Menu.MainForm.LoadFresh =1;
+					App.Menu.FocusFormPointer= &App.Menu.MainForm;
+					PostMessage(MessageParaUpdate, PARA_POWER_SET);
+				break;
+				default:
+					break;
+		}
+	
 }
 

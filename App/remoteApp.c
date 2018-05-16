@@ -67,17 +67,16 @@ static void AppSysParaUpload(void)
 	TxValidDataBuffer[index++] = App.SysCtrlPara.ChildLock;   //13  4
 	
 	TxValidDataBuffer[index++] = App.SysCtrlPara.CircleModeSet;   //9  5
-//	*pdes++= App.SysCtrlPara.HeatModeSet;   //10  6
-	TxValidDataBuffer[index++]= 1;   //10  6
+	TxValidDataBuffer[index++] = App.SysCtrlPara.ThermalModeSet;   //10  6
+//	TxValidDataBuffer[index++]= 1;   //10  6
 	
 	TxValidDataBuffer[index++] = (DISPFLOW_MAX>>8);  //  7
 	TxValidDataBuffer[index++] = (DISPFLOW_MAX&0xFF);  //  7
-	TxValidDataBuffer[index++] = (DISPFLOW_MIN+DISPFLOW_ONESTEP)>>8;		//  8
-	TxValidDataBuffer[index++] = (DISPFLOW_MIN+DISPFLOW_ONESTEP)&0xFF;		//  8
+	TxValidDataBuffer[index++] = (DISPFLOW_MIN+DISPFLOW_ONESTEP);		//  8
 	TxValidDataBuffer[index++] = DISPFLOW_ONESTEP;		//  9
 	TxValidDataBuffer[index++] = App.SysCtrlPara.AirFlowRun;			//  10
-//	*pdes++ = App.SysCtrlPara.VentilateRate;   //11  11
-	TxValidDataBuffer[index++] = 1;   //11  11
+	TxValidDataBuffer[index++] = App.SysCtrlPara.VentilateRate;   //11  11
+//	TxValidDataBuffer[index++] = 1;   //11  11
 	
 	TxValidDataBuffer[index++] = App.SensorData.TempOutside+40;   //18  12
 	TxValidDataBuffer[index++] = App.SensorData.TempInside+40;   //16  13
@@ -122,7 +121,7 @@ static void AppSysParaUpload(void)
 		TxValidDataBuffer[index++] = 0;   //7  3
 		TxValidDataBuffer[index++] = 1;   //7  3
 	}
-		TxValidDataBuffer[index++] = App.SysCtrlPara.AuxiliaryHeatSet;   //7  3
+//		TxValidDataBuffer[index++] = App.SysCtrlPara.AuxiliaryHeatSet;   //7  3
 
    
 	 WifiTrans = 	SysParaUpload;
@@ -399,8 +398,8 @@ void WifiRecvParse(byte type)
 					PostMessage(MessageParaUpdate, PARA_CHILDLOCK);
 					break;
 				case DevHeatModeSet:
-//					App.SysCtrlPara.HeatModeSet =(HeatModeTypedef)RxValidDataBuffer[1];   //11
-//					PostMessage(MessageParaUpdate, PARA_THERMALMODE);
+					App.SysCtrlPara.ThermalModeSet =(TempModeTypedef)RxValidDataBuffer[1];   //11
+					PostMessage(MessageParaUpdate, PARA_THERMALMODE);
 					break;
 				case DevVentilateRateSet:
 //					App.SysCtrlPara.VentilateRate =(VentilateRateTypedef)RxValidDataBuffer[1];   //12

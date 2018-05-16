@@ -56,6 +56,7 @@ typedef enum
     KeyLongMode          = 0x33, //key3
     KeyPower             = 0x04, //key4
     KeyLongPower         = 0x34, //key4
+    KeyStayPower         = 0x24, //key4
     KeyHeater             = 0x05, //key5
     KeyLongHeater         = 0x35, //key5
 	
@@ -190,9 +191,10 @@ typedef enum{
 
 typedef enum{
 	RATEEMPTY  = (byte)0x00,
-	RATE10TO08 = (byte)0x01,
-	RATE10TO10 = (byte)0x02,
-	RATE10TO12 = (byte)0x03
+	RATE10TO06 = (byte)0x01,
+	RATE10TO08 = (byte)0x02,
+	RATE10TO10 = (byte)0x03,
+	RATE10TO12 = (byte)0x04
 }VentilateRateTypedef;
 
 typedef enum{
@@ -233,59 +235,7 @@ typedef enum{
 }MutSetTypedef;
 
 
-typedef enum{
-	FIRSTFILTER_CHECK = (uint)0x01,
-	MIDFILTER_CHECK = (uint)0x02,
-	ESPFILTER_CHECK = (uint)0x04,
-	HPFILTER_CHECK = (uint)0x08,
-	POWERBASE_FAULT = (uint)0x10,
-	SENSOROUTTEMP_FAULT = (uint)0x20,
-	SENSORINTEMP_FAULT = (uint)0x40,
-	SENSORRH_FAULT = (uint)0x80,
-	SENSORCO2_FAULT = (uint)0x100,
-	SENSORPM_FAULT = (uint)0x200,
-	XFMOTO_FAULT = (uint)0x400,
-	PFMOTO_FAULT = (uint)0x800,
-	CO2INSIDEBEYOND=(uint)0x1000,
-	PMINSIDEBEYONG=(uint)0x2000,
-	HGA_FAULT = (uint)0x4000,
-	STORE_FAULT=(uint)0x8000,
 
-	FAULTICON_DISP = (uint)0x10000
-}FaultTypedef;
-
-
-typedef struct 
-{
-  signed char TempInside;                 
-  byte RHInside;
-  signed char TempOutside;
-  ushort CO2Inside;
-  ushort PMInside;
-}SensorDataTypedef;
-
-
-typedef	struct 
-{
-	PowerSetTypedef Power;
-	CircleModeSetTypedef CircleModeSet;
-	TempModeTypedef ThermalModeSet;
-	AuxiliaryHeatTypedef AuxiliaryHeatSet;
-	VentilateRateTypedef VentilateRate;
-	byte  AirFlowSet; 
-	byte  AirFlowRun; 
-	byte ShutTimer;
-	MutSetTypedef MuteSet;
-	ChildLockTypedef ChildLock;
-}SysCtrlParaTypedef; 
-
-typedef struct
-{
-	uint WifiState;
-	uint RFState;
-	uint FaultFlag;
-	uint FilterWarning;
-}SysStateTypedef;
 
 
 #define WIFI_STATE					0x00000007

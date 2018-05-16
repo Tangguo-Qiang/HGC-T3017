@@ -289,7 +289,7 @@ void InitPara(void)
 		App.SysCtrlLine.TempInsideWinterLine=18;
 	
 	PostMessage(MessageProcess, FILTER_POWERON);
-	PostMessage(MessageParaUpdate, PARA_POWER_SET);
+//	PostMessage(MessageParaUpdate, PARA_POWER_SET);
 		
 
 }

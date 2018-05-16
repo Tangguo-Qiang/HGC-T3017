@@ -20,10 +20,12 @@ AppStruct App;
 *******************************************************************************/
 static void InitData(void)
 {
-	App.SysVersion.CtrlMainVersion=MAIN_VERSION;
-	App.SysVersion.CtrlSubVersion=SUB_VERSION;
-	App.SysVersion.PowerMainVersion=1;
-	App.SysVersion.PowerSubVersion=10;
+	App.SysVersion.CtrlVersion=MAIN_VERSION;
+	App.SysVersion.CtrlVersion <<= 8;
+	App.SysVersion.CtrlVersion |= SUB_VERSION;
+	App.SysVersion.PowerVersion=1;
+	App.SysVersion.PowerVersion <<= 8;
+	App.SysVersion.PowerVersion |= 10;
 	
 	App.SensorData.PMInside =50;
   App.SensorData.CO2Inside= 600;
@@ -82,6 +84,7 @@ static void InitData(void)
 	App.SysState.FaultFlag = 0;
 	App.SysState.FilterWarning = 0x00;
 	
+	App.Menu.FocusFormPointer = &App.Menu.MainForm;
 	
 	InitPara();
 	

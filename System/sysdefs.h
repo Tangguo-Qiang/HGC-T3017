@@ -14,16 +14,8 @@
 #define __SELF_ADJUSTMOTO
 //#define __WIFI_VALIDE
 
-//#define HD_GJ_160C
+//#define HD_GJ_180C
 #define HD_GJ_360C
-//#define HD_GJ_600Z
-//#define DL_GJ_520Z
-//#define DL_GJ_360Z
-//#define HD_GJ_300Z
-//#define HD_GJ_160Z
 
-#if defined(DL_GJ_520Z)||defined(DL_GJ_360Z)
-	#define __DALE_MACHINE
-#endif
 
 #endif

@@ -18,6 +18,25 @@
 
 #define SHUTDOWNTIMER100MS		36000
 
+#define CO2INSIDE_GREEN_LINE    ((ushort)1001)
+#define CO2INSIDE_ORANGE_LINE   ((ushort)1501)
+#define CO2INSIDE_RED_LINE    	((ushort)2001)
+
+#define PMINSIDE_GREEN_LINE    ((ushort)51)
+#define PMINSIDE_ORANGE_LINE   ((ushort)101)
+#define PMINSIDE_RED_LINE    	 ((ushort)151)
+
+#define CO2INSIDE_GREEN    	((byte)0x01)
+#define CO2INSIDE_ORANGE    ((byte)0x02)
+#define CO2INSIDE_RED    		((byte)0x04)
+#define PMINSIDE_GREEN    	((byte)0x08)
+#define PMINSIDE_ORANGE    	((byte)0x10)
+#define PMINSIDE_RED    		((byte)0x20)
+
+#define IAQFLAG_GREEN			(CO2INSIDE_GREEN|PMINSIDE_GREEN)
+#define IAQFLAG_ORANGE		(CO2INSIDE_ORANGE|PMINSIDE_ORANGE)
+#define IAQFLAG_RED				(CO2INSIDE_RED|PMINSIDE_RED)
+
 #ifdef __EXCHANGE_FLOWS
 typedef struct{
 	uint16_t		Moto1PwmPace;
@@ -35,6 +54,9 @@ static ushort UseTimer10s=0;
 static byte OperTimer1s=SCREEN_WAITLIGHT_1S;
 //static byte LogicDelayMs=10;
 static byte StoreDelay=0;
+
+static byte IAQFlag=0;
+static byte IAQFlagNew=0;
 
 #ifdef __EXCHANGE_FLOWS
 void SetVentiMoto2Act(void)
@@ -255,7 +277,14 @@ void ParseEchoData(byte data)
 						PostMessage(MessageParaUpdate, PARA_CIRCLEMODE);
 					}
 				}
-			}	
+			}
+			IAQFlagNew &= ~(CO2INSIDE_GREEN|CO2INSIDE_ORANGE|CO2INSIDE_RED);
+      if(App.SensorData.CO2Inside<CO2INSIDE_GREEN_LINE)
+        IAQFlagNew |= CO2INSIDE_GREEN;
+      else if(App.SensorData.CO2Inside<CO2INSIDE_ORANGE_LINE)			
+        IAQFlagNew |= CO2INSIDE_ORANGE;
+			else
+        IAQFlagNew |= CO2INSIDE_RED;
 			break;
 		case COMM_IAQ_READ:
 			if(App.SysCtrlPara.CircleModeSet==CIRCLEMODE_AUTO)
@@ -277,6 +306,13 @@ void ParseEchoData(byte data)
 					PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 				}
 			}	
+			IAQFlagNew &= ~(PMINSIDE_GREEN|PMINSIDE_ORANGE|PMINSIDE_RED);
+      if(App.SensorData.PMInside<PMINSIDE_GREEN_LINE)
+        IAQFlagNew |= PMINSIDE_GREEN;
+      else if(App.SensorData.PMInside<PMINSIDE_ORANGE_LINE)			
+        IAQFlagNew |= PMINSIDE_ORANGE;
+			else
+        IAQFlagNew |= PMINSIDE_RED;
 			break;
 		case COMM_HEATERSET:
 			if(App.SysCtrlStatus.AuxiliaryHeatSet!=App.SysRunStatus.AuxiliaryHeat )
@@ -330,7 +366,6 @@ void ParseEchoData(byte data)
 				}
 				else
 				{
-//					PostMessage(MessageCommTrans, COMM_POWER_SET);
 					App.SysFault.PowerBaseFault++;
 					if(App.SysFault.PowerBaseFault>20)
 						App.SysState.FaultFlag  |= POWERBASE_FAULT;
@@ -345,13 +380,10 @@ void ParseEchoData(byte data)
 				}
 				else
 				{
-//					PostMessage(MessageCommTrans, COMM_POWER_SET);
 					App.SysFault.PowerBaseFault++;
 					if(App.SysFault.PowerBaseFault>20)
 						App.SysState.FaultFlag  |= POWERBASE_FAULT;
 				}
-				App.SensorData.PMInside =App.SysVersion.CtrlMainVersion*100+App.SysVersion.CtrlSubVersion;
-				App.SensorData.CO2Inside= App.SysVersion.PowerMainVersion*100+App.SysVersion.PowerSubVersion;
 			}
 			break;
 		default:
@@ -377,7 +409,7 @@ void Function_Run(void)
 		case 1:
 		  if(App.SysCtrlStatus.Power != App.SysRunStatus.Power )
 			{
-				seconds=0;
+//				seconds=0;
 				PostMessage(MessageCommTrans, COMM_POWER_SET);
 			}
 			else
@@ -413,12 +445,20 @@ void Function_Run(void)
 			PostMessage(MessageCommTrans, COMM_XFMOTODUTY);
 		break;
 		case 8:
+		if(App.SysCtrlPara.Power == POWER_SLEEP)
+			App.SensorData.RHInside = (uint8_t)System.Device.RhT.ReadRhTSensor(HIMIDITY_READ);
 #ifdef __DOUBLE_MOTOS
 			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
 #endif
 		break;
 		case 9:
-			PostMessage(MessageCommTrans, COMM_CO2_READ);
+//			PostMessage(MessageCommTrans, COMM_CO2_READ);
+		if(App.SysCtrlPara.Power == POWER_SLEEP)
+		{
+			App.SensorData.TempInside = (int8_t)System.Device.RhT.ReadRhTSensor(TEMPER_READ);
+			PostMessage(MessageProcess, IAQFLAG_DISP);
+		}
+		
 			break;
 		case 10:
 			seconds=0;
@@ -461,7 +501,8 @@ static void AppSystick10(void)
 				if(!OperTimer1s)
 				{
 					LCD_BL_OFF;
-					System.Device.Led.LedModeSet(LED_GREEN,BREATH_ON);
+					IAQFlag=0;
+					PostMessage(MessageProcess, IAQFLAG_DISP);
 					App.SysCtrlPara.Power = POWER_SLEEP;
 				}
 				
@@ -474,7 +515,8 @@ static void AppSystick10(void)
 		if(!SeqOperDelay)
 		{
 			PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
-			CommTalk_Trans(COMM_BEEPONE);
+			System.Device.Beep.BeepOn(BEEP_SHORT);
+//			CommTalk_Trans(COMM_BEEPONE);
 		}
 	}
 	
@@ -515,10 +557,14 @@ static void SysPowerOn(void)
    App.SysCtrlPara.ShutTimer=0;		
 	System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
 	System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
+	
 	SetVentiMoto2Act();
 //	InitHmi();
 //	START MOTOS AND CHECK CIRCLEMODE
 //	WifiCtrlCode(ModuleQuery);
+	App.SensorData.RHInside = (uint8_t)System.Device.RhT.ReadRhTSensor(HIMIDITY_READ);
+	App.SensorData.TempInside = (int8_t)System.Device.RhT.ReadRhTSensor(TEMPER_READ);
+	
 	LCD_BL_ON;
 }
 
@@ -589,6 +635,7 @@ void CtrlParaUpdate(ParaOperTypedef data)
 			{
 					LCD_BL_OFF;
 					System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+					System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
 					App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP_MUTE;
 					App.SysCtrlPara.Power = POWER_SLEEP;
 				OperTimer1s=0;
@@ -655,8 +702,6 @@ void CtrlParaUpdate(ParaOperTypedef data)
 			else
 			{
 				SysPowerOff();
-				App.SensorData.PMInside =App.SysVersion.CtrlMainVersion*100+App.SysVersion.CtrlSubVersion;
-				App.SensorData.CO2Inside= App.SysVersion.PowerMainVersion*100+App.SysVersion.PowerSubVersion;
 			}
 			PostMessage(MessageCommTrans, COMM_POWER_SET);
 			StorePost(STORE_SYSPARA);
@@ -813,6 +858,27 @@ void ProcessParse(ProcessTypedef ProcessMessage)
 			OperTimer1s = 0;
 			break;
 		
+		case IAQFLAG_DISP:
+			if((IAQFlagNew != IAQFlag)&&(App.SysCtrlPara.MuteSet == MUTEMODE_OFF))
+			{
+				IAQFlag = IAQFlagNew;
+				if(IAQFlag&IAQFLAG_RED)
+				{
+					System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+					System.Device.Led.LedModeSet(LED_RED,BREATH_ON);
+				}
+				else if(IAQFlag&IAQFLAG_ORANGE)
+				{
+					System.Device.Led.LedModeSet(LED_RED,BREATH_ON);
+					System.Device.Led.LedModeSet(LED_GREEN,BREATH_ON);
+				}
+				else
+				{
+					System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
+					System.Device.Led.LedModeSet(LED_GREEN,BREATH_ON);
+				}
+			}
+			break;
 	}
 }
 
@@ -832,8 +898,7 @@ void LogicTask(void)
 
 
     
-//  MenuTask();
-//  System.OS.DelayMs(100);
+	//  System.OS.DelayMs(100);
 //	SysPowerOn();
 
 	PostMessage(MessageCommTrans, COMM_VERSION);
@@ -849,7 +914,7 @@ void LogicTask(void)
         switch(GetMessageType(message))
         {
             case MessageKey:                    //°´¼üÏûÏ¢
-                KeyProcess((KeyActEnum)data);
+               App.Menu.FocusFormPointer->KeyProcess((KeyActEnum)data);
 							OperTimer1s=SCREEN_WAITLIGHT_1S;
                 break;
             case MessageCommRecv:
@@ -910,6 +975,6 @@ void LogicTask(void)
 //					System.Device.Iwdog.IwdogReload();
 
 				MenuTask();
-				System.OS.DelayMs(25);   //20161118
+				System.OS.DelayMs(25);   
     }
 }

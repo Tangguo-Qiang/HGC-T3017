@@ -182,16 +182,70 @@ NUM_Full=160
 
 }FigList;
 
+typedef enum{
+	FigObj_Null=(uint8_t)0x00,
+	FigObj_CircleMode=(uint8_t)0x01,
+	FigObj_VentiRate,
+	FigObj_FlowVol,
+	FigObj_Wheel,
+	FigObj_Leafs,
+	FigObj_Timer, 
+	FigObj_AuxiHeater,
+	FigObj_TempBla,
+	FigObj_Lock, 
+	FigObj_Fault, 
+	FigObj_Filter,
+	FigObj_WIFI,
+	FigObj_RF,
+	FigObj_CO2,
+	FigObj_PM25,
+	FigObj_TempOut,
+	FigObj_TempIn,
+	FigObj_RHIn,
+	FigObj_SFrame,
+	
+	FigObj_FaultCode,
+	FigObj_CtrlVersionCode,
+	FigObj_PowerVersionCode
+}FigObjDefType;
 
+typedef enum 
+{
+   NormalDisp=(byte)0,
+   InvisibleDisp=(byte)1,
+	 FlashDisp=(byte)2,
+	 OrderDisp=(byte)3
+}DispType;
+
+typedef enum 
+{
+    GuiDataTypeUnSignedNDec,
+    GuiDataTypeSigned10sDec,
+    GuiDataTypeUnSigned10sDec,
+    GuiDataTypeUnSigned100sDec,
+    GuiDataTypeUnSigned1000sDec,
+//    GuiDataTypeUintHex,
+//    GuiDataTypeFigure
+}DataType;
+
+typedef struct DispObjSelf
+{
+  Bool UpdataFlag;  
+	DispType Disp;
+//	byte DispTime10ms;
+	FigObjDefType ObjNum;
+//	DataType Type;
+	void * DataPointer;
+  struct DispObjSelf * NextObjPointer;
+}DispObjType;
 
 typedef struct
 {
-//  byte WheelGifSpeed10ms;
-  byte AnionGifSpeed100ms;
-  byte FigFlashSpeed100ms;
-//  byte TempRHStay100ms;
-}FormDispTypeDef;
-
+	byte LoadFresh;
+  byte ScreenClean;
+  DispObjType * DispObjPointer;
+  void (*KeyProcess)(KeyActEnum);
+}FormTypeDef;
 //extern SysCtrlParaTypedef * SysCtrlParaPoint;
 //extern SensorDataTypedef * SensorDataPoint;
 //extern SysStateTypedef* SysStatusPoint;

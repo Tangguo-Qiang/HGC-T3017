@@ -9,10 +9,10 @@
 //#define SUB_VERSION		01
 
 #define MAIN_VERSION  2
-#define SUB_VERSION		10
+#define SUB_VERSION		11
 
 #define __SELF_ADJUSTMOTO
-//#define __WIFI_VALIDE
+#define __WIFI_VALIDE
 
 //#define HD_GJ_180C
 #define HD_GJ_360C

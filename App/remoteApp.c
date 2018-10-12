@@ -511,7 +511,8 @@ void WifiCtrlCode(byte code)
 			App.SysState.WifiState = 0;
 			break;
 		case HekrConfig:
-			System.Device.Wifi.HekrModuleControl(HekrConfig);
+//			System.Device.Wifi.HekrModuleControl(HekrConfig);
+			System.Device.Wifi.HekrModuleControl(ModuleRecover);//V2.11
 			App.SysState.WifiState &= ~WIFI_STATE;
 			App.SysState.WifiState |= WIFI_STATE_CONFIG;
 			break;

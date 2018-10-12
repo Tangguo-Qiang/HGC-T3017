@@ -389,6 +389,9 @@ static void ParseForm(FormTypeDef * formPointer)
 							System.Device.Lcd.DispUnit(FigInSys[LCD_T26]);	
 						objPointer->UpdataFlag =TRUE;
 				}
+				else
+					System.Device.Lcd.NonDispUnit(FigInSys[LCD_T26]);
+					
 				break;
 			case FigObj_RF:
 				break;

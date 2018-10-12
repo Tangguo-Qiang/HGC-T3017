@@ -409,7 +409,7 @@ void Function_Run(void)
 		case 1:
 		  if(App.SysCtrlStatus.Power != App.SysRunStatus.Power )
 			{
-//				seconds=0;
+				seconds=0;
 				PostMessage(MessageCommTrans, COMM_POWER_SET);
 			}
 			else
@@ -458,6 +458,8 @@ void Function_Run(void)
 			App.SensorData.TempInside = (int8_t)System.Device.RhT.ReadRhTSensor(TEMPER_READ);
 			PostMessage(MessageProcess, IAQFLAG_DISP);
 		}
+		else
+			
 		
 			break;
 		case 10:
@@ -963,7 +965,7 @@ void LogicTask(void)
 								if(StoreDelay>100)
 								{
 									StoreDelay=0;
-//									StorePara();
+									StorePara();
 								}
 							}
 							else

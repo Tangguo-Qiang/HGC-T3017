@@ -67,7 +67,11 @@ typedef enum
 	  KeyPlusMinus         =0x08,
 	  KeyLongPlusMinus     =0x38,
 	  KeyModeHeater     =0x09,
-	  KeyLongModeHeater     =0x39
+	  KeyLongModeHeater     =0x39,
+	  KeyPowerPlus     =0x0a,
+	  KeyLongPowerPlus     =0x3a,
+	
+	KeyPowerPlusMinus =0x0a
 
     
 	

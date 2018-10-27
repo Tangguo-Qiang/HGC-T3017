@@ -328,8 +328,8 @@ Bool CommTalk_Trans(byte order)
 		case COMM_CIRCLEMODE:
 			CommTxBuffer[FRAME_MAINORDER]=CODE_CIRCLEMODE;
 			CommTxBuffer[FRAME_AIDORDER]=App.SysCtrlStatus.BypassMode ;
-			CommTxBuffer[FRAME_DATABEGIN]=((ushort)BYPASS_ANGLE>>8);
-			CommTxBuffer[FRAME_DATABEGIN+1]=BYPASS_ANGLE&0xFF;
+			CommTxBuffer[FRAME_DATABEGIN]=((ushort)(pDevData->BypassAngle)>>8);
+			CommTxBuffer[FRAME_DATABEGIN+1]=(pDevData->BypassAngle)&0xFF;
 			break;
 		case COMM_IAQ_READ:	
 			CommTxBuffer[FRAME_MAINORDER]=CODE_IAQ_READ;

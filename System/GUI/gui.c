@@ -244,9 +244,7 @@ static void ParseForm(FormTypeDef * formPointer)
 				}				
 				break;
 			case FigObj_FlowVol:
-				num = (*(byte*)objPointer->DataPointer);		
-				val = num* DISPFLOW_ONESTEP;
-				val += DISPFLOW_MIN;
+				val = (*(ushort*)objPointer->DataPointer);		
 				
 				num = val/100;
 				val %= 100;
@@ -512,6 +510,7 @@ static void ParseForm(FormTypeDef * formPointer)
 				DigitToDispRev(num,LCD_10D);
 
 				break;
+
 			case FigObj_CtrlVersionCode:
 				val = (*(ushort*)objPointer->DataPointer);	
 				num = val>>8;
@@ -539,6 +538,20 @@ static void ParseForm(FormTypeDef * formPointer)
 				DigitToDispRev(num,LCD_3D); 
 				
 				System.Device.Lcd.DispUnit(FigInSys[LCD_T35]);					
+				break;
+			
+			case FigObj_DevTypeCode:			
+				lval= (*(byte*)objPointer->DataPointer);
+
+
+				num = lval/100;
+				lval = lval%100;
+				DigitToDispRev(num,LCD_8D);
+				num = lval/10;
+				DigitToDispRev(num,LCD_9D);
+				num = lval%10;
+				DigitToDispRev(num,LCD_10D);
+
 				break;
 			default:
 				break;

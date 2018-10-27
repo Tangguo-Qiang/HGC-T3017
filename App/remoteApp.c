@@ -5,11 +5,7 @@
 //ModuleStatus 指针中各个有效位具体码值
 //
 //*************************************************************************
-typedef	enum
-{
-	HB_80 = 0x01,
-	HG_300 = 0x02,
-}MachineType;
+
 
 //Hekr模块状态码
 typedef	enum
@@ -70,10 +66,10 @@ static void AppSysParaUpload(void)
 	TxValidDataBuffer[index++] = App.SysCtrlPara.ThermalModeSet;   //10  6
 //	TxValidDataBuffer[index++]= 1;   //10  6
 	
-	TxValidDataBuffer[index++] = (DISPFLOW_MAX>>8);  //  7
-	TxValidDataBuffer[index++] = (DISPFLOW_MAX&0xFF);  //  7
-	TxValidDataBuffer[index++] = (DISPFLOW_MIN+DISPFLOW_ONESTEP);		//  8
-	TxValidDataBuffer[index++] = DISPFLOW_ONESTEP;		//  9
+	TxValidDataBuffer[index++] = ((pDevData->DispMax)>>8);  //  7
+	TxValidDataBuffer[index++] = ((pDevData->DispMax)&0xFF);  //  7
+	TxValidDataBuffer[index++] = ((pDevData->DispMin)+(pDevData->Dispstep));		//  8
+	TxValidDataBuffer[index++] = pDevData->Dispstep;		//  9
 	TxValidDataBuffer[index++] = App.SysCtrlPara.AirFlowRun;			//  10
 	TxValidDataBuffer[index++] = App.SysCtrlPara.VentilateRate;   //11  11
 //	TxValidDataBuffer[index++] = 1;   //11  11
@@ -402,8 +398,8 @@ void WifiRecvParse(byte type)
 					PostMessage(MessageParaUpdate, PARA_THERMALMODE);
 					break;
 				case DevVentilateRateSet:
-//					App.SysCtrlPara.VentilateRate =(VentilateRateTypedef)RxValidDataBuffer[1];   //12
-//					PostMessage(MessageParaUpdate, PARA_VENTILATE);
+					App.SysCtrlPara.VentilateRate =(VentilateRateTypedef)RxValidDataBuffer[1];   //12
+					PostMessage(MessageParaUpdate, PARA_VENTILATE);
 					break;
 				case DevAirflowSet:
 						App.SysCtrlPara.AirFlowSet =(byte)RxValidDataBuffer[1];  
@@ -514,7 +510,7 @@ void WifiCtrlCode(byte code)
 //			System.Device.Wifi.HekrModuleControl(HekrConfig);
 			System.Device.Wifi.HekrModuleControl(ModuleRecover);//V2.11
 			App.SysState.WifiState &= ~WIFI_STATE;
-			App.SysState.WifiState |= WIFI_STATE_CONFIG;
+//			App.SysState.WifiState |= WIFI_STATE_CONFIG;
 			break;
 		case HekrProdKey:
 			break;

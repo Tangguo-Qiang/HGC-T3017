@@ -36,8 +36,8 @@ void ParseRemoteIR(byte order)
 	{
 		case IR_REMOTE_AIRFLOW_PLUS:
       App.SysCtrlPara.AirFlowSet++;
-			if(App.SysCtrlPara.AirFlowSet>CTRLFLOW_STEPS)
-				App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEPS;
+			if(App.SysCtrlPara.AirFlowSet>CtrlStepMax)
+				App.SysCtrlPara.AirFlowSet = CtrlStepMax;
 			App.SysCtrlPara.AirFlowRun=App.SysCtrlPara.AirFlowSet;
 //			PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 //			CommTalk_Trans(COMM_BEEPONE);
@@ -46,8 +46,8 @@ void ParseRemoteIR(byte order)
 			break;
 		case IR_REMOTE_AIRFLOW_MINUS:
         App.SysCtrlPara.AirFlowSet--;
-	  		if(App.SysCtrlPara.AirFlowSet<CTRLFLOW_STEP)
-					App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEP;
+	  		if(App.SysCtrlPara.AirFlowSet<CTRLFLOW_STEP_MIN)
+					App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEP_MIN;
 				App.SysCtrlPara.AirFlowRun=App.SysCtrlPara.AirFlowSet;
 //		PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 //		CommTalk_Trans(COMM_BEEPONE);
@@ -64,22 +64,24 @@ void ParseRemoteIR(byte order)
 			
 			break;
 		case IR_REMOTE_VENTIRATE_PLUS:
-#ifdef __EXCHANGE_FLOWS
-		  App.SysCtrlPara.VentilateRate++;
-		  if(App.SysCtrlPara.VentilateRate>RATE10TO12)
-				App.SysCtrlPara.VentilateRate=RATE10TO12;
-			PostMessage(MessageParaUpdate, PARA_VENTILATE);
-			System.Device.Beep.BeepOn(BEEP_LONG);
-#endif	
+		  if(pDevData->ExchangeFlows)
+			{
+				App.SysCtrlPara.VentilateRate++;
+				if(App.SysCtrlPara.VentilateRate>RATE10TO12)
+					App.SysCtrlPara.VentilateRate=RATE10TO12;
+				PostMessage(MessageParaUpdate, PARA_VENTILATE);
+				System.Device.Beep.BeepOn(BEEP_LONG);
+			}
 			break;
 		case IR_REMOTE_VENTIRATE_MINUS:
-#ifdef __EXCHANGE_FLOWS
-		  App.SysCtrlPara.VentilateRate--;
-		  if(App.SysCtrlPara.VentilateRate<RATE10TO08)
-				App.SysCtrlPara.VentilateRate=RATE10TO08;
-			PostMessage(MessageParaUpdate, PARA_VENTILATE);
-			System.Device.Beep.BeepOn(BEEP_LONG);
-#endif	
+		  if(pDevData->ExchangeFlows)
+			{
+				App.SysCtrlPara.VentilateRate--;
+				if(App.SysCtrlPara.VentilateRate<RATE10TO08)
+					App.SysCtrlPara.VentilateRate=RATE10TO08;
+				PostMessage(MessageParaUpdate, PARA_VENTILATE);
+				System.Device.Beep.BeepOn(BEEP_LONG);
+			}
 			break;
 		case IR_REMOTE_POWER:
 			if(App.SysCtrlPara.Power == POWER_OFF)
@@ -124,30 +126,33 @@ void ParseRemoteIR(byte order)
 			break;
 		
 		case IR_REMOTE_THERMALMODE:
-#ifdef __EXCHANGE_FLOWS
-		  App.SysCtrlPara.ThermalModeSet++;
-		  if(App.SysCtrlPara.ThermalModeSet>TEMPMODE_OFF)
-				App.SysCtrlPara.ThermalModeSet=TEMPMODE_AUTO;
-			PostMessage(MessageParaUpdate, PARA_THERMALMODE);
-			System.Device.Beep.BeepOn(BEEP_LONG);
-		
-#else
- #ifdef __AUXI_HEATER
-   #ifdef HD_GJ_160Z
-			if(App.SysCtrlPara.AuxiliaryHeatSet==HEATER_OFF)
-				App.SysCtrlPara.AuxiliaryHeatSet = HEATER_FULL;
-			else
-				App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
-						
-   #else
-			App.SysCtrlPara.AuxiliaryHeatSet++;
-			if(App.SysCtrlPara.AuxiliaryHeatSet>HEATER_FULL)
-				App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;						
-   #endif
-			PostMessage(MessageParaUpdate, PARA_HEATSET);
-			System.Device.Beep.BeepOn(BEEP_LONG);
- #endif
-#endif			
+		  if(pDevData->ExchangeFlows)
+			{
+				App.SysCtrlPara.ThermalModeSet++;
+				if(App.SysCtrlPara.ThermalModeSet>TEMPMODE_OFF)
+					App.SysCtrlPara.ThermalModeSet=TEMPMODE_AUTO;
+				PostMessage(MessageParaUpdate, PARA_THERMALMODE);
+				System.Device.Beep.BeepOn(BEEP_LONG);
+			}
+			else if(pDevData->AuxiHeater)
+			{
+				if(pDevData->AuxiHeater>1)
+				{
+				App.SysCtrlPara.AuxiliaryHeatSet++;
+				if(App.SysCtrlPara.AuxiliaryHeatSet>HEATER_FULL)
+					App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;						
+				}
+				else
+				{
+					if(App.SysCtrlPara.AuxiliaryHeatSet==HEATER_OFF)
+						App.SysCtrlPara.AuxiliaryHeatSet = HEATER_FULL;
+					else
+						App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
+				}
+				PostMessage(MessageParaUpdate, PARA_HEATSET);
+				System.Device.Beep.BeepOn(BEEP_LONG);
+			}
+ 
 			break;
 		case IR_REMOTE_TIMERMODE:
 			App.SysCtrlPara.ShutTimer++;

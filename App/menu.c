@@ -18,6 +18,7 @@
 #include "hmi.h"
 
 
+
 static DispObjType DispCircleMode;
 static DispObjType DispVentiRate;
 static DispObjType DispFlowVol;
@@ -40,6 +41,7 @@ static DispObjType DispSFrame;
 static DispObjType DispFaultCode;
 static DispObjType DispCtrlVersion;
 static DispObjType DispPowerVersion;
+static DispObjType DevTypeCode;
 
 //DispObjType *pMairFormObj[]={&DispCircleMode,&DispVentiRate,&DispFlowVol,&DispWheel,&DispLeafs,
 //&DispTimer,&DispAuxiHeater,&DispTempBla,&DispLock,&DispFault,&DispFilter,&DispWIFI,&DispRF,
@@ -47,6 +49,8 @@ static DispObjType DispPowerVersion;
 static SensorDataTypedef DispSensorData;
 static SysCtrlParaTypedef DispSysCtrlPara;
 static SysStateTypedef DispSysState;
+static ushort DispAirFlow;
+static byte DevTypeDisp=0;
 
 void InitMenu(void)
 {
@@ -64,10 +68,12 @@ void InitMenu(void)
 	DispVentiRate.Disp = NormalDisp;
 	DispVentiRate.DataPointer = (void*)&App.SysCtrlPara.VentilateRate;
 	
+	DispAirFlow = App.SysCtrlPara.AirFlowRun * (pDevData->Dispstep);
+	DispAirFlow += pDevData->DispMin;
 	System.Gui.AddDispObj(&App.Menu.MainForm,&DispFlowVol);
 	DispFlowVol.ObjNum = FigObj_FlowVol;
 	DispFlowVol.Disp = NormalDisp;
-	DispFlowVol.DataPointer = (void*)&App.SysCtrlPara.AirFlowRun;
+	DispFlowVol.DataPointer = (void*)&DispAirFlow; //App.SysCtrlPara.AirFlowRun;
 	
 	System.Gui.AddDispObj(&App.Menu.MainForm,&DispWheel);
 	DispWheel.ObjNum = FigObj_Wheel;
@@ -168,6 +174,14 @@ void InitMenu(void)
 	DispPowerVersion.Disp = NormalDisp;
 	DispPowerVersion.DataPointer = (void*)&App.SysVersion.PowerVersion;
 	
+	App.Menu.DevTypeForm.DispObjPointer= null;
+	App.Menu.DevTypeForm.KeyProcess=KeyProcessDevTypeForm;
+	App.Menu.DevTypeForm.ScreenClean = TRUE;
+	
+	System.Gui.AddDispObj(&App.Menu.DevTypeForm,&DevTypeCode);
+	DevTypeCode.ObjNum = FigObj_DevTypeCode;
+	DevTypeCode.Disp = NormalDisp;
+	DevTypeCode.DataPointer = (void*)&App.DevType;
 	
 	
 
@@ -210,6 +224,9 @@ static void RefreshMenu(void)
 	if(DispSysCtrlPara.AirFlowRun != App.SysCtrlPara.AirFlowRun)
 	{
 		DispSysCtrlPara.AirFlowRun = App.SysCtrlPara.AirFlowRun;
+		DispAirFlow = App.SysCtrlPara.AirFlowRun * (pDevData->Dispstep);
+		DispAirFlow += pDevData->DispMin;
+		
 		DispFlowVol.UpdataFlag = TRUE;
 	}
 	if(DispSysCtrlPara.CircleModeSet != App.SysCtrlPara.CircleModeSet)
@@ -262,7 +279,12 @@ static void RefreshMenu(void)
 		DispSysState.FaultFlag = App.SysState.FaultFlag;
 		DispFault.UpdataFlag = TRUE;
 	}
-}
+	
+	if(DevTypeDisp != App.DevType)
+	{
+		DevTypeDisp = App.DevType;
+		DevTypeCode.UpdataFlag = TRUE;
+	}}
 
 void MenuTask(void)
 {

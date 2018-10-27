@@ -204,7 +204,6 @@ typedef enum{
 }RHTReadTypedef;
 
 #include "device.h"  
-#include "logicctrl.h"
 
 #include "os.h"
 #include "gui.h"

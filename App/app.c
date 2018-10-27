@@ -14,12 +14,14 @@
 #include "app.h"
 
 AppStruct App;
+ushort CtrlStepMax=0;
 
 /*******************************************************************************
 * 描述	    : 初始化数据库
 *******************************************************************************/
 static void InitData(void)
 {
+	
 	App.SysVersion.CtrlVersion=MAIN_VERSION;
 	App.SysVersion.CtrlVersion <<= 8;
 	App.SysVersion.CtrlVersion |= SUB_VERSION;
@@ -42,7 +44,8 @@ static void InitData(void)
 	App.SysFault.TempInSensors =0;
 	
 	App.SysCtrlPara.Power = POWER_OFF;
-	App.SysCtrlPara.AirFlowSet =CTRLFLOW_STEPS;
+	App.SysCtrlPara.AirFlowSet =CtrlStepMax;
+	App.SysCtrlPara.AirFlowRun =CtrlStepMax;
 	App.SysCtrlPara.CircleModeSet= CIRCLEMODE_OUT;
 	App.SysCtrlPara.VentilateRate = RATE10TO08;
 	App.SysCtrlPara.ThermalModeSet = TEMPMODE_OFF;
@@ -86,6 +89,28 @@ static void InitData(void)
 	
 	App.Menu.FocusFormPointer = &App.Menu.MainForm;
 	
+	
+	
+	DevParaOpt(READFROMSTORE);
+ 	if(App.DevType==HD_360C_CODE)
+		pDevData += (HG_360C-0x10);
+	else if(App.DevType==HD_180C_CODE)
+		pDevData += (HG_180C-0x10);
+	else
+	{
+#ifdef HD_GJ_360C
+		App.DevType = HD_360C_CODE;
+		pDevData += (HG_360C-0x10);
+#endif	
+#ifdef HD_GJ_180C
+		App.DevType = HD_180C_CODE;
+		pDevData += (HG_180C-0x10);
+#endif
+	}
+	
+	CtrlStepMax= (pDevData->DispMax - pDevData->DispMin)/pDevData->Dispstep;
+
+
 	InitPara();
 	
 }

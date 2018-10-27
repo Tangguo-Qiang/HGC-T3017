@@ -22,7 +22,7 @@ typedef struct                              // 定义队列类型
     ushort      Entries;                    // 消息长度
 } QueueStruct;
 
-#define MenuTaskStackSum    400             // 菜单界面任务栈深度
+//#define MenuTaskStackSum    400             // 菜单界面任务栈深度
 #define QueueBufferSum      40              // 消息队列深度
 
 

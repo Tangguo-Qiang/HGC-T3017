@@ -16,7 +16,42 @@
 
 #define 	SEQUENCEOPER_DELAY_100MS		5
 
+#define CTRLFLOW_STEP_MIN 1
+
+typedef struct 
+{
+	ushort DispMax;
+	byte DispMin;
+	byte Dispstep;
+	
+	ushort BypassAngle;
+	byte DoubleMotos;
+	byte ExchangeFlows;
+	byte AuxiHeater;
+	
+	ushort RpmMin_Moto1;
+	ushort RpmOutAct_Moto1;
+	ushort RpmInAct_Moto1;
+	ushort PwmMin_Moto1;
+	ushort PwmOutAct_Moto1;
+	ushort PwmInAct_Moto1;	
+	
+	ushort RpmMin_Moto2;
+	ushort RpmStop_Moto2;
+	ushort RpmAct06_Moto2;
+	ushort RpmAct08_Moto2;
+	ushort RpmAct10_Moto2;
+	ushort RpmAct12_Moto2;
+	ushort PwmMin_Moto2;
+	ushort PwmStop_Moto2;
+	ushort PwmAct06_Moto2;
+	ushort PwmAct08_Moto2;
+	ushort PwmAct10_Moto2;
+	ushort PwmAct12_Moto2;
+}DevDataType;
+
 extern byte SeqOperDelay;
+extern const DevDataType *pDevData;
 
 extern void LogicTask(void);
 

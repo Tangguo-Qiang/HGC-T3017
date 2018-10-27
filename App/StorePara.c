@@ -83,6 +83,21 @@ TestStatus StoreParaOpt(StorePara_TypDef paratype,StoreOpt_TypDef oper)
 	return flag;
 }
 
+void DevParaOpt( StoreOpt_TypDef oper)
+{
+	uint8_t* pBuffer=0;
+	
+	pBuffer = (uint8_t*)&App.DevType;
+	if(oper==WRITETOSTORE)
+	{
+		System.Device.Eeprom.I2C_EE_BufferWrite(pBuffer,EEPROM_ADDRESS_DEVTYPE,1);
+	}
+	else
+	{
+		System.Device.Eeprom.I2C_EE_BufferRead(pBuffer,EEPROM_ADDRESS_DEVTYPE,1);
+	}
+	
+}
 
 TestStatus IfSysInit(void)
 {
@@ -94,7 +109,10 @@ TestStatus IfSysInit(void)
 	else
 	{
 		flag= SYSTEM_INITFLAG;
-		System.Device.Eeprom.I2C_EE_BufferWrite(&flag,  EEPROM_ADDRESS_INITFLAG,  1);
+		System.Device.Eeprom.I2C_EE_BufferWrite(&flag,  EEPROM_ADDRESS_INITFLAG,1);
+		
+		flag = 0xFF;
+		System.Device.Eeprom.I2C_EE_BufferRead(&flag,  EEPROM_ADDRESS_DEVTYPE,1);
 		return FAILED;
 	}
 	
@@ -276,8 +294,8 @@ void InitPara(void)
 	if(App.SysCtrlPara.Power != POWER_OFF)
 		App.SysCtrlPara.Power = POWER_ON;
 	
-	if(App.SysCtrlPara.AirFlowSet>CTRLFLOW_STEPS)
-		App.SysCtrlPara.AirFlowSet=CTRLFLOW_STEPS;
+	if(App.SysCtrlPara.AirFlowSet>CtrlStepMax)
+		App.SysCtrlPara.AirFlowSet=CtrlStepMax;
 	
 	if((App.SysCtrlLine.CO2InsideLine<800)||(App.SysCtrlLine.CO2InsideLine>1200))
 		App.SysCtrlLine.CO2InsideLine=1000;

@@ -55,6 +55,8 @@ static byte RemapKey(byte scan)
         case 0x0B:  return(KeyModeMinus);
         case 0x13:  return(KeyModePlus);
         case 0x07:  return(KeyPlusMinus);
+        case 0x16:  return(KeyPowerPlus);
+        case 0x06:  return(KeyPowerPlusMinus);
         default:    return(NOBTN_PRESS);  
     }
 }
@@ -72,6 +74,7 @@ static byte RemapLongKey(byte scan)
         case 0x0B:  return(KeyLongModeMinus);
         case 0x13:  return(KeyLongModePlus);
         case 0x07:  return(KeyLongPlusMinus);
+        case 0x16:  return(KeyLongPowerPlus);
         default:    return(NOBTN_PRESS);
     }	
 }

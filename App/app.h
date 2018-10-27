@@ -151,14 +151,19 @@ typedef struct
     {
         FormTypeDef MainForm;
         FormTypeDef FaultForm;
+        FormTypeDef DevTypeForm;
+			
         FormTypeDef *FocusFormPointer;
    }Menu;
 		
 		SysStateTypedef SysState;
 		
 		uint StoreState;
+	 
+	  byte DevType;
 }AppStruct;
 
 extern AppStruct App;
+extern  ushort CtrlStepMax;
 
 #endif

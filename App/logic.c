@@ -11,8 +11,9 @@
 
 
 #include "system.h"
-#include "app.h"
 #include "StorePara.h"
+#include "app.h"
+#include "logicctrl.h"
 
 #define SCREEN_WAITLIGHT_1S		120
 
@@ -37,17 +38,18 @@
 #define IAQFLAG_ORANGE		(CO2INSIDE_ORANGE|PMINSIDE_ORANGE)
 #define IAQFLAG_RED				(CO2INSIDE_RED|PMINSIDE_RED)
 
-#ifdef __EXCHANGE_FLOWS
 typedef struct{
 	uint16_t		Moto1PwmPace;
 	uint16_t  	Moto1RpmPace;
 	uint16_t  	Moto2PwmPace;
 	uint16_t  	Moto2RpmPace;
 }SysIndex_TypeDef;
-SysIndex_TypeDef SysIndex={PWM_MOTO1_OUT_STEP,RPM_MOTO1_OUT_STEP,0,0};
-uint16_t MotoPFStopPwm = PWM_MOTO2_STOP;
-#endif
 
+SysIndex_TypeDef SysIndex={100,70,0,0};
+//uint16_t MotoPFStopPwm = PWM_MOTO2_STOP;
+
+
+const DevDataType *pDevData= &DevDataArray[0];
 byte SeqOperDelay= 0; 
 
 static ushort UseTimer10s=0;
@@ -58,35 +60,35 @@ static byte StoreDelay=0;
 static byte IAQFlag=0;
 static byte IAQFlagNew=0;
 
-#ifdef __EXCHANGE_FLOWS
-void SetVentiMoto2Act(void)
-{
-	switch(App.SysCtrlPara.VentilateRate )
-	{
-//		case RATE10TO06:
-//			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
-//			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
+//#ifdef __EXCHANGE_FLOWS
+//void SetVentiMoto2Act(void)
+//{	
+//	switch(App.SysCtrlPara.VentilateRate )
+//	{
+////		case RATE10TO06:
+////			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
+////			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
+////			break;
+//		case RATE10TO08:
+//			SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct08_Moto2)/ctrlsteps);
+//			SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct08_Moto2)/ctrlsteps);
 //			break;
-		case RATE10TO08:
-			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT08)/CTRLFLOW_STEPS);
-			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT08)/CTRLFLOW_STEPS);
-			break;
-		case RATE10TO10:
-			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT10)/CTRLFLOW_STEPS);
-			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT10)/CTRLFLOW_STEPS);
-			break;
-		case RATE10TO12:
-			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT12)/CTRLFLOW_STEPS);
-			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT12)/CTRLFLOW_STEPS);
-			break;
-		default:
-			App.SysCtrlPara.VentilateRate = RATE10TO08;
-			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT12)/CTRLFLOW_STEPS);
-			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT08)/CTRLFLOW_STEPS);
-			break;
-	}	
-}
-#endif
+//		case RATE10TO10:
+//			SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct10_Moto2)/ctrlsteps);
+//			SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct10_Moto2)/ctrlsteps);
+//			break;
+//		case RATE10TO12:
+//			SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct12_Moto2)/ctrlsteps);
+//			SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct12_Moto2)/ctrlsteps);
+//			break;
+//		default:
+//			App.SysCtrlPara.VentilateRate = RATE10TO08;
+//			SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct08_Moto2)/ctrlsteps);
+//			SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct08_Moto2)/ctrlsteps);
+//			break;
+//	}	
+//}
+//#endif
 
 void GetMotoXFOcupy(uint8_t airflow)
 {
@@ -95,11 +97,11 @@ void GetMotoXFOcupy(uint8_t airflow)
 	if(airflow )
 	{
 		temp = (SysIndex.Moto1RpmPace*airflow);
-		temp += RPM_MOTO1_MIN;
+		temp += pDevData->RpmMin_Moto1;
 		App.SysCtrlStatus.XFmotoRPM= (uint16_t)temp;
 		
 		temp = SysIndex.Moto1PwmPace*airflow;
-		temp += (PWM_MOTO1_MIN);
+		temp += (pDevData->PwmMin_Moto1);
 		App.SysCtrlStatus.XFmotoPWM= (uint16_t)temp; 
 	}
 	else
@@ -109,7 +111,6 @@ void GetMotoXFOcupy(uint8_t airflow)
 	}
 }
 		
-#ifdef __DOUBLE_MOTOS
 void GetMotoPFOcupy(uint8_t airflow)
 {
 	uint32_t temp;
@@ -117,19 +118,19 @@ void GetMotoPFOcupy(uint8_t airflow)
 	if(airflow )
 	{
 			temp = (SysIndex.Moto2RpmPace*airflow);
-			temp += RPM_MOTO2_MIN;
+			temp += pDevData->RpmMin_Moto2; //RPM_MOTO2_MIN;
 			App.SysCtrlStatus.PFmotoRPM= (uint16_t)temp;
 			
 					
 			temp = SysIndex.Moto2PwmPace*airflow;
-			temp += (PWM_MOTO2_MIN);
+			temp += (pDevData->PwmMin_Moto2);//(PWM_MOTO2_MIN);
 			App.SysCtrlStatus.PFmotoPWM= (uint16_t)temp; 
 		
 	#ifdef __EXCHANGE_FLOWS
 			if((App.SysCtrlStatus.BypassMode == BYPASS_CIRCLEIN)||(App.SysCtrlStatus.ThermalMode == TEMPMODE_ON))
 			{
-				App.SysCtrlStatus.PFmotoPWM=  MotoPFStopPwm;
-				App.SysCtrlStatus.PFmotoRPM = RPM_MOTO2_STOP;//350;
+				App.SysCtrlStatus.PFmotoPWM = pDevData->PwmStop_Moto2; //MotoPFStopPwm;
+				App.SysCtrlStatus.PFmotoRPM = pDevData->RpmStop_Moto2; //RPM_MOTO2_STOP;//350;
 			}
 	#endif
 			
@@ -141,7 +142,7 @@ void GetMotoPFOcupy(uint8_t airflow)
 	}
 	
 }
-#endif		
+		
 
 
 //#ifdef __SELF_ADJUSTMOTO
@@ -232,31 +233,32 @@ void ParseEchoData(byte data)
 {
 	switch(data)
 	{
-#ifdef __EXCHANGE_FLOWS
 		case COMM_TEMPER_RH:
-			if(App.SysCtrlPara.ThermalModeSet == TEMPMODE_AUTO)
+			if(pDevData->ExchangeFlows)
 			{
-				if(App.SensorData.TempOutside>22)
+				if(App.SysCtrlPara.ThermalModeSet == TEMPMODE_AUTO)
 				{
-					if((App.SensorData.TempInside>App.SysCtrlLine.TempInsideSummerLine)&&(App.SensorData.TempOutside<=(App.SysCtrlLine.TempInsideSummerLine-2)))
-						 App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
+					if(App.SensorData.TempOutside>22)
+					{
+						if((App.SensorData.TempInside>App.SysCtrlLine.TempInsideSummerLine)&&(App.SensorData.TempOutside<=(App.SysCtrlLine.TempInsideSummerLine-2)))
+							 App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
+						else
+							App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;
+					}
+					else if(App.SensorData.TempOutside<21)
+					{
+						if((App.SensorData.TempInside<App.SysCtrlLine.TempInsideWinterLine)&&(App.SensorData.TempOutside>=(App.SysCtrlLine.TempInsideWinterLine+2)))
+							 App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
+						else
+							App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;
+					}
 					else
-						App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;
+						App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;			
+					GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
 				}
-				else if(App.SensorData.TempOutside<21)
-				{
-					if((App.SensorData.TempInside<App.SysCtrlLine.TempInsideWinterLine)&&(App.SensorData.TempOutside>=(App.SysCtrlLine.TempInsideWinterLine+2)))
-						 App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
-					else
-						App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;
-				}
-				else
-					App.SysCtrlStatus.ThermalMode =  TEMPMODE_OFF;			
-				GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
 			}
 
   		break;
-#endif
 		case COMM_CO2_READ:
 			if(App.SysCtrlPara.CircleModeSet==CIRCLEMODE_AUTO)
 			{
@@ -292,8 +294,8 @@ void ParseEchoData(byte data)
 				if(App.SensorData.PMInside>App.SysCtrlLine.PMInsideLine)
 				{
 					App.SysCtrlPara.AirFlowRun++;
-					if(App.SysCtrlPara.AirFlowRun>CTRLFLOW_STEPS)
-							App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEPS;
+					if(App.SysCtrlPara.AirFlowRun>CtrlStepMax)
+							App.SysCtrlPara.AirFlowRun = CtrlStepMax;
 					PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 				}
 				else if(App.SysCtrlPara.AirFlowRun != App.SysCtrlPara.AirFlowSet)
@@ -341,7 +343,6 @@ void ParseEchoData(byte data)
 
 #endif
 			break;
-#ifdef __DOUBLE_MOTOS
 		case COMM_PFMOTODUTY:
 #ifdef __SELF_ADJUSTMOTO
 					if(App.SysFault.MotoPF>20)  //plus 10%
@@ -354,7 +355,6 @@ void ParseEchoData(byte data)
 
 #endif
 			break;
-#endif
 
 		case COMM_POWER_SET:
 			if(App.SysCtrlStatus.Power == POWER_ON)
@@ -416,8 +416,6 @@ void Function_Run(void)
 			{
 				if(App.SysCtrlStatus.AuxiliaryHeatSet != App.SysRunStatus.AuxiliaryHeat )
 					PostMessage(MessageCommTrans, COMM_HEATERSET);
-//				if(App.SysCtrlStatus.XFmotoPWM != App.SysRunStatus.XFmotoPWM )
-//					PostMessage(MessageCommTrans, COMM_XFMOTODUTY);
 				if(App.SysCtrlStatus.BypassMode != App.SysRunStatus.BypassMode )
 					PostMessage(MessageCommTrans, COMM_CIRCLEMODE);
 			}
@@ -426,9 +424,8 @@ void Function_Run(void)
 			PostMessage(MessageCommTrans, COMM_XFMOTODUTY);
 		break;
 		case 3:
-#ifdef __DOUBLE_MOTOS
-			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
-#endif
+			if(pDevData->DoubleMotos)
+				PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
 		break;
 		case 4:
 			PostMessage(MessageCommTrans, COMM_TEMPER_RH);
@@ -445,11 +442,10 @@ void Function_Run(void)
 			PostMessage(MessageCommTrans, COMM_XFMOTODUTY);
 		break;
 		case 8:
-		if(App.SysCtrlPara.Power == POWER_SLEEP)
-			App.SensorData.RHInside = (uint8_t)System.Device.RhT.ReadRhTSensor(HIMIDITY_READ);
-#ifdef __DOUBLE_MOTOS
-			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
-#endif
+			if(App.SysCtrlPara.Power == POWER_SLEEP)
+				App.SensorData.RHInside = (uint8_t)System.Device.RhT.ReadRhTSensor(HIMIDITY_READ);
+			if(pDevData->DoubleMotos)
+				PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
 		break;
 		case 9:
 //			PostMessage(MessageCommTrans, COMM_CO2_READ);
@@ -494,6 +490,18 @@ static void AppSystick10(void)
 		{
 			if(App.SysRunStatus.Power != POWER_OFF)
 				PostMessage(MessageCommTrans, COMM_POWER_SET);
+			if(TypeSetDelay)
+			{
+				TypeSetDelay--;
+				if(!TypeSetDelay)
+				{
+					TypeSetState = 0; 
+					LCD_BL_OFF;
+				System.Device.Led.LedModeSet(LED_RED,TURN_ON);
+				System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+				}
+			}
+			
 			return;
 		}
 		Function_Run();
@@ -527,12 +535,15 @@ static void SysPowerOff(void)
 {
 	App.SysCtrlPara.Power = POWER_OFF;
 	App.SysCtrlStatus.Power = POWER_OFF;	
-	App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP;
+	App.SysCtrlPara.AirFlowRun = 1;
 	App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
 	App.SysCtrlPara.ChildLock =CHILD_UNLOCK;
 	App.SysCtrlPara.ShutTimer =0;
 	System.Device.Timer.Stop(TIMER1);
 	LCD_BL_OFF;
+	App.DevType =100;
+	App.Menu.FocusFormPointer= &App.Menu.DevTypeForm;
+	App.Menu.DevTypeForm.LoadFresh =TRUE;
 	System.Device.Led.LedModeSet(LED_RED,TURN_ON);
 	System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
 }
@@ -551,6 +562,8 @@ static void SysPowerOn(void)
 	App.SysRunStatus.Power = POWER_EMPTY;
 	App.SysRunStatus.BypassMode = BYPASS_UNKNOW;
 	
+//	SetVentiMoto2Act();
+	PostMessage(MessageParaUpdate, PARA_VENTILATE);  
 	PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);  
 	PostMessage(MessageParaUpdate, PARA_CIRCLEMODE);  
 	if(App.SysCtrlPara.ShutTimer <10)
@@ -560,7 +573,9 @@ static void SysPowerOn(void)
 	System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
 	System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
 	
-	SetVentiMoto2Act();
+	App.Menu.MainForm.LoadFresh =TRUE;
+	App.Menu.FocusFormPointer= &App.Menu.MainForm;
+	
 //	InitHmi();
 //	START MOTOS AND CHECK CIRCLEMODE
 //	WifiCtrlCode(ModuleQuery);
@@ -576,52 +591,52 @@ void CtrlParaUpdate(ParaOperTypedef data)
 	{
 		case PARA_XFMOTODUTY:
 			GetMotoXFOcupy(App.SysCtrlPara.AirFlowRun);
-#ifdef __DOUBLE_MOTOS
-			GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
-#endif
+			if(pDevData->DoubleMotos)
+				GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
+			
 			PostMessage(MessageCommTrans, COMM_XFMOTODUTY);
 			StorePost(STORE_SYSPARA);
 			break;
 		case PARA_PFMOTODUTY:
-#ifdef __EXCHANGE_FLOWS
+//		  if(pDevData->ExchangeFlows)
 			GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
 			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
-#endif		
+		
 			break;
 		case PARA_CIRCLEMODE:
 		  switch(App.SysCtrlPara.CircleModeSet)
 			{
 				case CIRCLEMODE_OUT:
 					App.SysCtrlStatus.BypassMode = BYPASS_CIRCLEOUT;
-				 SysIndex.Moto1PwmPace = PWM_MOTO1_OUT_STEP;
-				 SysIndex.Moto1RpmPace = RPM_MOTO1_OUT_STEP;
+				 SysIndex.Moto1PwmPace = pDevData->PwmOutAct_Moto1/CtrlStepMax; //PWM_MOTO1_OUT_STEP;
+				 SysIndex.Moto1RpmPace = pDevData->RpmOutAct_Moto1/CtrlStepMax; //RPM_MOTO1_OUT_STEP;
 					PostMessage(MessageCommTrans, COMM_CIRCLEMODE);
 				break;
 				case CIRCLEMODE_IN:
 					App.SysCtrlStatus.BypassMode = BYPASS_CIRCLEIN;
-				 SysIndex.Moto1PwmPace = PWM_MOTO1_IN_STEP;
-				 SysIndex.Moto1RpmPace = RPM_MOTO1_IN_STEP;
+				 SysIndex.Moto1PwmPace = pDevData->PwmInAct_Moto1/CtrlStepMax; //PWM_MOTO1_IN_STEP;
+				 SysIndex.Moto1RpmPace = pDevData->RpmInAct_Moto1/CtrlStepMax; //RPM_MOTO1_IN_STEP;
 //					PostMessage(MessageParaUpdate, PARA_PFMOTODUTY);
 					PostMessage(MessageCommTrans, COMM_CIRCLEMODE);
 				break;
 				case CIRCLEMODE_AUTO:
 					if(App.SysCtrlStatus.BypassMode == BYPASS_CIRCLEIN)
 					{
-						 SysIndex.Moto1PwmPace = PWM_MOTO1_IN_STEP;
-						 SysIndex.Moto1RpmPace = RPM_MOTO1_IN_STEP;
+					 SysIndex.Moto1PwmPace = pDevData->PwmInAct_Moto1/CtrlStepMax; //PWM_MOTO1_IN_STEP;
+					 SysIndex.Moto1RpmPace = pDevData->RpmInAct_Moto1/CtrlStepMax; //RPM_MOTO1_IN_STEP;
 					}
 					else
 					{
 						App.SysCtrlStatus.BypassMode = BYPASS_CIRCLEOUT;
-					  SysIndex.Moto1PwmPace = PWM_MOTO1_OUT_STEP;
-					  SysIndex.Moto1RpmPace = RPM_MOTO1_OUT_STEP;
+					 SysIndex.Moto1PwmPace = pDevData->PwmOutAct_Moto1/CtrlStepMax; //PWM_MOTO1_OUT_STEP;
+					 SysIndex.Moto1RpmPace = pDevData->RpmOutAct_Moto1/CtrlStepMax; //RPM_MOTO1_OUT_STEP;
 					}
 				break;
 				default:
 					App.SysCtrlPara.CircleModeSet =CIRCLEMODE_OUT;
 					App.SysCtrlStatus.BypassMode = BYPASS_CIRCLEOUT;
-				  SysIndex.Moto1PwmPace = PWM_MOTO1_OUT_STEP;
-				  SysIndex.Moto1RpmPace = RPM_MOTO1_OUT_STEP;
+				 SysIndex.Moto1PwmPace = pDevData->PwmOutAct_Moto1/CtrlStepMax; //PWM_MOTO1_OUT_STEP;
+				 SysIndex.Moto1RpmPace = pDevData->RpmOutAct_Moto1/CtrlStepMax; //RPM_MOTO1_OUT_STEP;
 					PostMessage(MessageCommTrans, COMM_CIRCLEMODE);
 				break;
 			}
@@ -638,7 +653,7 @@ void CtrlParaUpdate(ParaOperTypedef data)
 					LCD_BL_OFF;
 					System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
 					System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
-					App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP_MUTE;
+					App.SysCtrlPara.AirFlowRun = CtrlStepMax/2; //CTRLFLOW_STEP_MUTE;
 					App.SysCtrlPara.Power = POWER_SLEEP;
 				OperTimer1s=0;
 			}
@@ -655,34 +670,62 @@ void CtrlParaUpdate(ParaOperTypedef data)
 			PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 			break;
 		case PARA_VENTILATE:
-#ifdef __EXCHANGE_FLOWS
-			SetVentiMoto2Act();
-  		GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
-			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
-			StorePost(STORE_SYSPARA);
-#endif
+			if(pDevData->ExchangeFlows)
+			{
+				switch(App.SysCtrlPara.VentilateRate )
+				{
+			//		case RATE10TO06:
+			//			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
+			//			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT06)/AIRFLOW_TOTAL_STEPS);
+			//			break;
+					case RATE10TO08:
+						SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct08_Moto2)/CtrlStepMax);
+						SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct08_Moto2)/CtrlStepMax);
+						break;
+					case RATE10TO10:
+						SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct10_Moto2)/CtrlStepMax);
+						SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct10_Moto2)/CtrlStepMax);
+						break;
+					case RATE10TO12:
+						SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct12_Moto2)/CtrlStepMax);
+						SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct12_Moto2)/CtrlStepMax);
+						break;
+					default:
+						App.SysCtrlPara.VentilateRate = RATE10TO08;
+						SysIndex.Moto2PwmPace = (uint16_t)((pDevData->PwmAct08_Moto2)/CtrlStepMax);
+						SysIndex.Moto2RpmPace = (uint16_t)((pDevData->RpmAct08_Moto2)/CtrlStepMax);
+						break;
+				}	
+				
+	//			GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
+				PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
+				StorePost(STORE_SYSPARA);
+			}
+
 			break;
 		case PARA_THERMALMODE:
-#ifdef __EXCHANGE_FLOWS
-			switch(App.SysCtrlPara.ThermalModeSet)
+		  if(pDevData->ExchangeFlows)
 			{
-				case TEMPMODE_AUTO:
-					break;
-				case TEMPMODE_ON:
-					App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
-					break;
-				case TEMPMODE_OFF:
-					App.SysCtrlStatus.ThermalMode = TEMPMODE_OFF;
-					break;
-				default:
-					App.SysCtrlPara.ThermalModeSet = TEMPMODE_OFF;
-					App.SysCtrlStatus.ThermalMode = TEMPMODE_OFF;
-					break;
+				switch(App.SysCtrlPara.ThermalModeSet)
+				{
+					case TEMPMODE_AUTO:
+						break;
+					case TEMPMODE_ON:
+						App.SysCtrlStatus.ThermalMode = TEMPMODE_ON;
+						break;
+					case TEMPMODE_OFF:
+						App.SysCtrlStatus.ThermalMode = TEMPMODE_OFF;
+						break;
+					default:
+						App.SysCtrlPara.ThermalModeSet = TEMPMODE_OFF;
+						App.SysCtrlStatus.ThermalMode = TEMPMODE_OFF;
+						break;
+				}
+				GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
+				PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
+				StorePost(STORE_SYSPARA);		
 			}
-			GetMotoPFOcupy(App.SysCtrlPara.AirFlowRun);
-			PostMessage(MessageCommTrans, COMM_PFMOTODUTY);
-			StorePost(STORE_SYSPARA);
-#endif
+
 			break;
 		case PARA_CHILDLOCK:
 			break;
@@ -887,6 +930,7 @@ void ProcessParse(ProcessTypedef ProcessMessage)
 static void InitLogic(void)
 {
   System.Device.Systick.Register(Systick10, AppSystick10);
+	
 #ifdef __WIFI_VALIDE
 	AppWifiInit();
 #endif

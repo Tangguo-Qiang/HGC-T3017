@@ -206,7 +206,9 @@ typedef enum{
 	
 	FigObj_FaultCode,
 	FigObj_CtrlVersionCode,
-	FigObj_PowerVersionCode
+	FigObj_PowerVersionCode,
+	
+	FigObj_DevTypeCode,
 }FigObjDefType;
 
 typedef enum 

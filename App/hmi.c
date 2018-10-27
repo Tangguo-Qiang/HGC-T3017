@@ -1,6 +1,9 @@
 #include "app.h"
 
+#define TYPESET_DELAY_S 10
 
+byte TypeSetState=0;
+byte TypeSetDelay=0;
 /*******************************************************************************
 * 描述	    : 按键消息处理函数
 * 输入参数  : key，任意按键值
@@ -66,34 +69,40 @@ void KeyProcessMainForm(KeyActEnum key)
         case KeyHeater :
 					System.Device.Key.KeyLedSet(5);
 					System.Device.Beep.BeepOn(BEEP_LONG);
-#ifdef __EXCHANGE_FLOWS
-		  App.SysCtrlPara.VentilateRate++;
-		  if(App.SysCtrlPara.VentilateRate>RATE10TO12)
-				App.SysCtrlPara.VentilateRate=RATE10TO08;
-			PostMessage(MessageParaUpdate, PARA_VENTILATE);
-#else
- #ifdef HD_GJ_160Z
-					if(App.SysCtrlPara.AuxiliaryHeatSet==HEATER_OFF)
-						App.SysCtrlPara.AuxiliaryHeatSet = HEATER_FULL;
-          else
-						App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
-						
- #else
+				if(pDevData->ExchangeFlows)
+				{
+					App.SysCtrlPara.VentilateRate++;
+					if(App.SysCtrlPara.VentilateRate>RATE10TO12)
+						App.SysCtrlPara.VentilateRate=RATE10TO08;
+					PostMessage(MessageParaUpdate, PARA_VENTILATE);
+				}
+				else if(pDevData->AuxiHeater)
+				{
+					if(pDevData->AuxiHeater>1)
+					{
 					App.SysCtrlPara.AuxiliaryHeatSet++;
 					if(App.SysCtrlPara.AuxiliaryHeatSet>HEATER_FULL)
 						App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;						
- #endif
+					}
+					else
+					{
+						if(App.SysCtrlPara.AuxiliaryHeatSet==HEATER_OFF)
+							App.SysCtrlPara.AuxiliaryHeatSet = HEATER_FULL;
+						else
+							App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
+					}
 					PostMessage(MessageParaUpdate, PARA_HEATSET);
-#endif
-            break;
+					System.Device.Beep.BeepOn(BEEP_LONG);
+				}
+        break;
 
             
             
         case KeyPlus:
 					System.Device.Key.KeyLedSet(5);
             App.SysCtrlPara.AirFlowSet++;
-						if(App.SysCtrlPara.AirFlowSet>CTRLFLOW_STEPS)
-							App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEPS;
+						if(App.SysCtrlPara.AirFlowSet>CtrlStepMax)
+							App.SysCtrlPara.AirFlowSet = CtrlStepMax;
 						App.SysCtrlPara.AirFlowRun=App.SysCtrlPara.AirFlowSet;
 //						PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 						SeqOperDelay =SEQUENCEOPER_DELAY_100MS;
@@ -101,8 +110,8 @@ void KeyProcessMainForm(KeyActEnum key)
         case KeyMinus:
 					System.Device.Key.KeyLedSet(5);
              App.SysCtrlPara.AirFlowSet--;
-						if(App.SysCtrlPara.AirFlowSet<CTRLFLOW_STEP)
-							App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEP;
+						if(App.SysCtrlPara.AirFlowSet<CTRLFLOW_STEP_MIN)
+							App.SysCtrlPara.AirFlowSet = CTRLFLOW_STEP_MIN;
 						App.SysCtrlPara.AirFlowRun=App.SysCtrlPara.AirFlowSet;
 //						PostMessage(MessageParaUpdate, PARA_XFMOTODUTY);
 						SeqOperDelay =SEQUENCEOPER_DELAY_100MS;
@@ -121,7 +130,7 @@ void KeyProcessMainForm(KeyActEnum key)
 					if(App.SysCtrlPara.Power == POWER_ON)
 					{
 							System.Device.Beep.BeepOn(BEEP_3SHORT);
-							App.Menu.FaultForm.LoadFresh =1;
+							App.Menu.FaultForm.LoadFresh =TRUE;
 							App.Menu.FocusFormPointer= &App.Menu.FaultForm;
 					}
 					break;
@@ -144,7 +153,7 @@ void KeyProcessFaultForm(KeyActEnum key)
 			case KeyLongPlus:
 			case KeyLongMinus:
 							System.Device.Beep.BeepOn(BEEP_LONG);
-							App.Menu.MainForm.LoadFresh =1;
+							App.Menu.MainForm.LoadFresh = TRUE;
 							App.Menu.FocusFormPointer= &App.Menu.MainForm;
 				
 				break;
@@ -152,7 +161,7 @@ void KeyProcessFaultForm(KeyActEnum key)
 					App.SysCtrlPara.Power = POWER_OFF;
 					System.Device.Beep.BeepOn(BEEP_POWEROFF);
 					System.Device.Key.KeyLedSet(1);
-					App.Menu.MainForm.LoadFresh =1;
+					App.Menu.MainForm.LoadFresh =TRUE;
 					App.Menu.FocusFormPointer= &App.Menu.MainForm;
 					PostMessage(MessageParaUpdate, PARA_POWER_SET);
 				break;
@@ -162,3 +171,88 @@ void KeyProcessFaultForm(KeyActEnum key)
 	
 }
 
+
+void KeyProcessDevTypeForm(KeyActEnum key)
+{
+		switch(key)
+		{
+			case KeyMode:
+			case KeyHeater:
+				break;
+			case KeyPlus:
+				if(TypeSetState==2)
+				{
+					App.DevType++;
+					if(App.DevType >200)
+						App.DevType =1;
+				}
+				TypeSetDelay= TYPESET_DELAY_S;
+				break;
+			case KeyMinus:
+				if(TypeSetState==2)
+				{
+					App.DevType--;
+					if(App.DevType <1)
+						App.DevType =2;
+				}
+				TypeSetDelay= TYPESET_DELAY_S;
+				break;
+			case KeyPower:
+					App.SysCtrlPara.Power = POWER_ON;
+					System.Device.Beep.BeepOn(BEEP_POWEROFF);
+					System.Device.Key.KeyLedSet(1);
+					PostMessage(MessageParaUpdate, PARA_POWER_SET);
+					TypeSetState=0;
+					TypeSetDelay= 0;
+				break;
+			case KeyLongMode:
+			case KeyLongPlus:
+				break;
+			case KeyLongPlusMinus:			
+				TypeSetState++;
+			  if(TypeSetState==2)
+				{
+					System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
+					System.Device.Led.LedModeSet(LED_GREEN,LED_TWINKLE);
+				}
+				else
+				{
+					if((App.DevType==HD_360C_CODE)||(App.DevType==HD_180C_CODE))
+						DevParaOpt(WRITETOSTORE);
+					App.SysCtrlPara.Power = POWER_OFF;
+					System.Device.Led.LedModeSet(LED_RED,TURN_ON);
+					System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+					System.Device.Led.LedModeSet(LED_RED,TEMP_TWINKLE);
+					
+					TypeSetState=0;
+					TypeSetDelay= 0;
+					LCD_BL_OFF;
+				}
+				
+				TypeSetDelay= TYPESET_DELAY_S;
+				break;
+			case KeyLongPowerPlus:
+				System.Device.Led.LedModeSet(LED_RED,TURN_OFF);
+				System.Device.Led.LedModeSet(LED_GREEN,TURN_OFF);
+				App.Menu.DevTypeForm.LoadFresh =TRUE;
+				LCD_BL_ON;
+				TypeSetState = 1;
+			
+				TypeSetDelay= TYPESET_DELAY_S;
+				break;
+			case KeyLongPower:
+					App.SysCtrlPara.Power = POWER_ON;
+					System.Device.Beep.BeepOn(BEEP_POWEROFF);
+					System.Device.Key.KeyLedSet(1);
+					PostMessage(MessageParaUpdate, PARA_POWER_SET);
+					TypeSetState=0;
+					TypeSetDelay= 0;
+				break;
+				default:
+					TypeSetState=0;
+					TypeSetDelay= 0;
+					LCD_BL_OFF;
+					break;
+		}
+	
+}

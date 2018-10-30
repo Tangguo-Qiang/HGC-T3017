@@ -8,8 +8,7 @@
 #define MAIN_VERSION  3
 #define SUB_VERSION		01
 
-//#define MAIN_VERSION  2
-//#define SUB_VERSION		11
+
 
 #define __SELF_ADJUSTMOTO
 #define __WIFI_VALIDE

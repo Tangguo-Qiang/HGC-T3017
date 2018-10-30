@@ -90,6 +90,7 @@ static byte IAQFlagNew=0;
 //}
 //#endif
 
+
 void GetMotoXFOcupy(uint8_t airflow)
 {
 	uint32_t temp;
@@ -535,7 +536,7 @@ static void SysPowerOff(void)
 {
 	App.SysCtrlPara.Power = POWER_OFF;
 	App.SysCtrlStatus.Power = POWER_OFF;	
-	App.SysCtrlPara.AirFlowRun = 1;
+//	App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP;
 	App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
 	App.SysCtrlPara.ChildLock =CHILD_UNLOCK;
 	App.SysCtrlPara.ShutTimer =0;

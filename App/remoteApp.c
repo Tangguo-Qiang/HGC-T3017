@@ -402,8 +402,10 @@ void WifiRecvParse(byte type)
 					PostMessage(MessageParaUpdate, PARA_THERMALMODE);
 					break;
 				case DevVentilateRateSet:
-//					App.SysCtrlPara.VentilateRate =(VentilateRateTypedef)RxValidDataBuffer[1];   //12
-//					PostMessage(MessageParaUpdate, PARA_VENTILATE);
+#ifdef __EXCHANGE_FLOWS
+					App.SysCtrlPara.VentilateRate =(VentilateRateTypedef)RxValidDataBuffer[1];   //12
+					PostMessage(MessageParaUpdate, PARA_VENTILATE);
+#endif
 					break;
 				case DevAirflowSet:
 						App.SysCtrlPara.AirFlowSet =(byte)RxValidDataBuffer[1];  

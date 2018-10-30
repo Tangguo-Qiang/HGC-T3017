@@ -81,7 +81,7 @@ void SetVentiMoto2Act(void)
 			break;
 		default:
 			App.SysCtrlPara.VentilateRate = RATE10TO08;
-			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT12)/CTRLFLOW_STEPS);
+			SysIndex.Moto2PwmPace = (uint16_t)((PWM_MOTO2_ACT08)/CTRLFLOW_STEPS);
 			SysIndex.Moto2RpmPace = (uint16_t)((RPM_MOTO2_ACT08)/CTRLFLOW_STEPS);
 			break;
 	}	
@@ -527,7 +527,7 @@ static void SysPowerOff(void)
 {
 	App.SysCtrlPara.Power = POWER_OFF;
 	App.SysCtrlStatus.Power = POWER_OFF;	
-	App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP;
+//	App.SysCtrlPara.AirFlowRun = CTRLFLOW_STEP;
 	App.SysCtrlPara.AuxiliaryHeatSet = HEATER_OFF;
 	App.SysCtrlPara.ChildLock =CHILD_UNLOCK;
 	App.SysCtrlPara.ShutTimer =0;

@@ -17,20 +17,25 @@
 
 
 
-#ifdef __BYPASS_INVERSE
-	typedef enum{
-		BYPASS_UNKNOW = (byte)CIRCLEMODE_EMPTY,
-		BYPASS_CIRCLEOUT = (byte)0x02,//(CIRCLEMODE_IN-1),
-		BYPASS_CIRCLEIN = (byte)0x01//(CIRCLEMODE_OUT-1)
-	}BypassModeTypedef;
-#else
+//#ifdef __BYPASS_INVERSE
+//	typedef enum{
+//		BYPASS_UNKNOW = (byte)CIRCLEMODE_EMPTY,
+//		BYPASS_CIRCLEOUT = (byte)0x02,//(CIRCLEMODE_IN-1),
+//		BYPASS_CIRCLEIN = (byte)0x01//(CIRCLEMODE_OUT-1)
+//	}BypassModeTypedef;
+//#else
+//	typedef enum{
+//		BYPASS_UNKNOW = (byte)CIRCLEMODE_EMPTY,
+//		BYPASS_CIRCLEOUT = (byte)0x01,//(CIRCLEMODE_OUT-1),
+//		BYPASS_CIRCLEIN = (byte)0x02//(CIRCLEMODE_IN-1)
+//	}BypassModeTypedef;
+//#endif
+
 	typedef enum{
 		BYPASS_UNKNOW = (byte)CIRCLEMODE_EMPTY,
 		BYPASS_CIRCLEOUT = (byte)0x01,//(CIRCLEMODE_OUT-1),
-		BYPASS_CIRCLEIN = (byte)0x02//(CIRCLEMODE_IN-1)
+		BYPASS_CIRCLEIN = (byte)0x02,//(CIRCLEMODE_IN-1)
 	}BypassModeTypedef;
-#endif
-
 
 
 typedef struct 

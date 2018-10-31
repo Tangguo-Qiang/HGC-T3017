@@ -1,12 +1,40 @@
 #ifndef __LOGICCTRL_H
 	#define __LOGICCTRL_H
 
+/*	ushort DispMax;
+	byte DispMin;
+	byte Dispstep;
+	
+	ushort BypassAngle; greater than 180 for inverse set
+	byte DoubleMotos;
+	byte ExchangeFlows;
+	byte AuxiHeater;
+	
+	ushort RpmMin_Moto1;
+	ushort RpmOutAct_Moto1;
+	ushort RpmInAct_Moto1;
+	ushort PwmMin_Moto1;
+	ushort PwmOutAct_Moto1;
+	ushort PwmInAct_Moto1;	
+	
+	ushort RpmMin_Moto2;
+	ushort RpmStop_Moto2;
+	ushort RpmAct06_Moto2;
+	ushort RpmAct08_Moto2;
+	ushort RpmAct10_Moto2;
+	ushort RpmAct12_Moto2;
+	ushort PwmMin_Moto2;
+	ushort PwmStop_Moto2;
+	ushort PwmAct06_Moto2;
+	ushort PwmAct08_Moto2;
+	ushort PwmAct10_Moto2;
+	ushort PwmAct12_Moto2;*/
 
 const DevDataType DevDataArray[]={
 	/*HD_360C*/
-  {360,80,20,30,1,1,0,370,980,840,7400,1500,1500,360,350,560,560,700,840,7600,7500,600,900,1000,1200},
+  {360,80,20, 210,1,1,0, 370,980,840,7400,1500,1500, 360,350,560,560,700,840,7600,7500,600,900,1000,1200},
 	/*HD_180C*/
-	{180,60,10,30,1,1,0,440,960,720,7400,1500,1500,370,350,480,600,720,840,7600,7500,600,900,1000,1200},
+	{180,60,10, 30,1,1,0, 440,960,720,7400,1500,1500, 370,350,480,600,720,840,7600,7500,600,900,1000,1200},
 };
 
 

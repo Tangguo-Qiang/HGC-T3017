@@ -177,6 +177,12 @@ Bool CommTalk_Echo(byte length)
 								break;
 							case CODE_CIRCLEMODE:
 								App.SysRunStatus.BypassMode  = (BypassModeTypedef)CommRxBuffer[FRAME_AIDORDER];
+								if(pDevData->BypassAngle>180)
+								{
+									App.SysRunStatus.BypassMode++;
+									if(App.SysRunStatus.BypassMode>BYPASS_CIRCLEIN)
+										App.SysRunStatus.BypassMode=BYPASS_CIRCLEOUT;
+								}
 								break;
 //							case HEATTEMPER:
 //								App.SysRunStatus.ThermalMode  = (HeatModeTypedef)CommRxBuffer[FRAME_AIDORDER];
@@ -283,7 +289,7 @@ Bool CommTalk_Echo(byte length)
 Bool CommTalk_Trans(byte order)
 {
 	Bool flag;
-//	ushort rpm;
+	ushort val;
 	
 	Fill_BufferZero((uint8_t*)&CommTxBuffer[FRAME_HEAD], (uint16_t)COMMTXDATASIZE);	
 	CommTxBuffer[FRAME_HEAD]=0x58;
@@ -328,8 +334,16 @@ Bool CommTalk_Trans(byte order)
 		case COMM_CIRCLEMODE:
 			CommTxBuffer[FRAME_MAINORDER]=CODE_CIRCLEMODE;
 			CommTxBuffer[FRAME_AIDORDER]=App.SysCtrlStatus.BypassMode ;
-			CommTxBuffer[FRAME_DATABEGIN]=((ushort)(pDevData->BypassAngle)>>8);
-			CommTxBuffer[FRAME_DATABEGIN+1]=(pDevData->BypassAngle)&0xFF;
+		  val = pDevData->BypassAngle;
+			if(val>180)
+			{
+				CommTxBuffer[FRAME_AIDORDER]++;
+				if(CommTxBuffer[FRAME_AIDORDER]>BYPASS_CIRCLEIN)
+					CommTxBuffer[FRAME_AIDORDER]=BYPASS_CIRCLEOUT;
+				val -= 180;
+			}
+			CommTxBuffer[FRAME_DATABEGIN]=((ushort)(val)>>8);
+			CommTxBuffer[FRAME_DATABEGIN+1]=(val)&0xFF;
 			break;
 		case COMM_IAQ_READ:	
 			CommTxBuffer[FRAME_MAINORDER]=CODE_IAQ_READ;
